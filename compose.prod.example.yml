@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mimo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-mimo_audio}
+    volumes:
+      - ${APP_DATA_DIR:-/opt/mimo-studio/data/postgres}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: always
+
+  api:
+    image: audioplayer-api:${AUDIOPLAYER_RELEASE:-local}
+    env_file: ${APP_ENV_FILE:-/opt/mimo-studio/.env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8787:8787"
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8787/audioplayer/api/health"]
+      interval: 10s
+      timeout: 4s
+      retries: 10
+
+  web:
+    image: audioplayer-web:${AUDIOPLAYER_RELEASE:-local}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5689:80"
+    restart: always

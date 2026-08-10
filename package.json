@@ -1,0 +1,57 @@
+{
+  "name": "mimo-audio-studio",
+  "version": "1.0.0",
+  "description": "A tactile full-stack TTS and ASR workstation for the MiMo audio API.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shynloc/MiMo-Audio-Studio.git"
+  },
+  "keywords": ["mimo", "tts", "asr", "speech", "react", "hono", "threejs"],
+  "engines": {
+    "node": ">=22"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "tsx watch server/index.ts",
+    "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "build:api": "tsc -p server/tsconfig.json && node scripts/prepare-api-build.mjs",
+    "db:migrate": "tsx server/scripts/migrate.ts",
+    "check:r2": "tsx server/scripts/check-r2.ts",
+    "check:email": "tsx server/scripts/check-email.ts",
+    "test:api": "node --import tsx --test server/tests/*.test.ts",
+    "typecheck": "tsc -p server/tsconfig.json --noEmit",
+    "preview": "vite preview",
+    "test:sites": "node --test tests/sites-worker.test.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1106.0",
+    "@aws-sdk/s3-request-presigner": "^3.1106.0",
+    "@fontsource-variable/ibm-plex-sans": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@hono/node-server": "^2.1.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "@vitejs/plugin-react": "5.0.4",
+    "better-auth": "^1.6.26",
+    "dotenv": "^17.4.2",
+    "hono": "^4.13.1",
+    "nodemailer": "^9.0.5",
+    "pg": "^8.23.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "three": "^0.185.1",
+    "vite": "6.4.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/nodemailer": "^8.0.1",
+    "@types/pg": "^8.21.0",
+    "tsx": "^4.23.11",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: mimo
+      POSTGRES_PASSWORD: mimo_local_only
+      POSTGRES_DB: mimo_audio
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - mimo-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mimo -d mimo_audio"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  mimo-postgres-data:
+
