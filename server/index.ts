@@ -17,7 +17,7 @@ import { checkR2, deleteAudioObject, putAudioObject, signedAudioUrl } from "./r2
 type Session = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 type Variables = { session: Session };
 const rootApp = new Hono<{ Variables: Variables }>();
-const app = env.isProduction ? rootApp.basePath("/audioplayer") : rootApp;
+const app = env.appBasePath ? rootApp.basePath(env.appBasePath) : rootApp;
 const generationWindows = new Map<string, number[]>();
 
 app.use("*", secureHeaders());

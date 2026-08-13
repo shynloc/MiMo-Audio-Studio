@@ -7,12 +7,18 @@ loadEnv({ path: ".env", quiet: true });
 
 const isProduction = process.env.NODE_ENV === "production";
 const developmentSecret = (label: string) => createHash("sha256").update(`mimo-audio-local:${label}`).digest("base64");
+const normalizeBasePath = (value: string) => {
+  const path = value.trim();
+  if (!path || path === "/") return "";
+  return `/${path.replace(/^\/+|\/+$/g, "")}`;
+};
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(8787),
   APP_ORIGIN: z.string().url().default("http://127.0.0.1:4173"),
   API_ORIGIN: z.string().url().default("http://127.0.0.1:8787"),
+  APP_BASE_PATH: z.string().default(isProduction ? "/audioplayer" : ""),
   DATABASE_URL: z.string().min(1).default("postgresql://mimo:mimo_local_only@127.0.0.1:55432/mimo_audio"),
   DATABASE_SSL: z.enum(["true", "false"]).default("false"),
   BETTER_AUTH_SECRET: z.string().min(32).default(isProduction ? "" : developmentSecret("auth")),
@@ -65,4 +71,5 @@ export const env = {
   encryptionKey,
   trustedOrigins: [parsed.data.APP_ORIGIN, parsed.data.API_ORIGIN],
   r2Configured: Boolean(parsed.data.R2_ACCOUNT_ID && parsed.data.R2_ACCESS_KEY_ID && parsed.data.R2_SECRET_ACCESS_KEY),
+  appBasePath: normalizeBasePath(parsed.data.APP_BASE_PATH),
 };

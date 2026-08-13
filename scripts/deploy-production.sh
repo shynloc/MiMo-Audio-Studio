@@ -8,12 +8,16 @@ ENV_FILE=${ENV_FILE:-$APP_ROOT/.env}
 APP_DATA_DIR=${APP_DATA_DIR:-$APP_ROOT/data/postgres}
 PROJECT_NAME=${PROJECT_NAME:-mimo-studio}
 AUDIOPLAYER_RELEASE=${AUDIOPLAYER_RELEASE:?Set AUDIOPLAYER_RELEASE to an immutable release tag}
+WEB_IMAGE_REPO=${WEB_IMAGE_REPO:-audioplayer-web}
+API_IMAGE_REPO=${API_IMAGE_REPO:-audioplayer-api}
+VITE_APP_BASE_PATH=${VITE_APP_BASE_PATH:-/audioplayer}
 HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8787/audioplayer/api/health}
 PUBLIC_URL=${PUBLIC_URL:-}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 compose() {
   APP_DATA_DIR="$APP_DATA_DIR" APP_ENV_FILE="$ENV_FILE" AUDIOPLAYER_RELEASE="$AUDIOPLAYER_RELEASE" \
+    WEB_IMAGE_REPO="$WEB_IMAGE_REPO" API_IMAGE_REPO="$API_IMAGE_REPO" \
     docker compose --env-file "$ENV_FILE" -p "$PROJECT_NAME" -f "$COMPOSE_FILE" "$@"
 }
 
@@ -28,8 +32,8 @@ case "$permissions" in
 esac
 
 cd "$SOURCE_DIR"
-docker build -t "audioplayer-web:$AUDIOPLAYER_RELEASE" .
-docker build -f Dockerfile.api -t "audioplayer-api:$AUDIOPLAYER_RELEASE" .
+docker build --build-arg "VITE_APP_BASE_PATH=$VITE_APP_BASE_PATH" -t "$WEB_IMAGE_REPO:$AUDIOPLAYER_RELEASE" .
+docker build -f Dockerfile.api -t "$API_IMAGE_REPO:$AUDIOPLAYER_RELEASE" .
 compose config >/dev/null
 
 postgres_before=$(compose ps -q postgres)
