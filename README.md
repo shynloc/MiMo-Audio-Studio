@@ -156,7 +156,8 @@ npm run db:migrate
 | 变量 | 必需 | 说明 |
 | --- | --- | --- |
 | `APP_ORIGIN` | 是 | 浏览器访问的站点 Origin，不带路径 |
-| `API_ORIGIN` | 是 | API 对外地址；生产默认挂载在 `/audioplayer` |
+| `API_ORIGIN` | 是 | API 对外地址；应与浏览器实际访问地址一致 |
+| `APP_BASE_PATH` | 否 | 生产 API 挂载路径；独立域名根路径使用 `/`，默认 `/audioplayer` |
 | `DATABASE_URL` | 是 | PostgreSQL 连接串 |
 | `POSTGRES_PASSWORD` | 生产 | Compose 创建数据库时使用；应与连接串一致 |
 | `BETTER_AUTH_SECRET` | 生产 | 至少 32 字符的认证密钥 |
@@ -272,6 +273,8 @@ AUDIOPLAYER_RELEASE=<COMMIT> \
 ```
 
 生产 Compose 只把 `POSTGRES_USER`、`POSTGRES_PASSWORD`、`POSTGRES_DB` 注入 PostgreSQL。修改 SMTP、R2 或 MiMo 配置不会再因为共享整份 `.env` 而重建数据库容器。
+
+若部署在独立域名根路径，前端镜像构建时传入 `--build-arg VITE_APP_BASE_PATH=/`，并在服务端环境设置 `APP_BASE_PATH=/`。子路径部署时，两者必须保持为相同路径。
 
 ### 3. Nginx 反向代理
 

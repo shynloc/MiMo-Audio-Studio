@@ -6,11 +6,10 @@ import { sendPasswordResetEmail, sendVerificationEmail } from "./email.js";
 
 export const auth = betterAuth({
   appName: "MiMo Studio",
-  // Better Auth treats a pathname already present in baseURL as the complete
-  // auth mount point. In production the API lives below /audioplayer, so keep
-  // baseURL at the site origin and describe the full mount path explicitly.
+  // Keep the public origin and deployment path separate so the same image can
+  // run at a dedicated domain root or below a reverse-proxy subpath.
   baseURL: env.isProduction ? env.APP_ORIGIN : env.API_ORIGIN,
-  basePath: env.isProduction ? "/audioplayer/api/auth" : "/api/auth",
+  basePath: `${env.appBasePath}/api/auth`,
   secret: env.BETTER_AUTH_SECRET,
   plugins: [admin({ defaultRole: "user", adminRoles: ["admin"] })],
   database: pool,
