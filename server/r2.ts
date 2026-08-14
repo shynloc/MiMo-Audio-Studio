@@ -29,6 +29,14 @@ export async function signedAudioUrl(key: string, disposition: "inline" | "attac
   return getSignedUrl(getClient(), command, { expiresIn: env.R2_SIGNED_URL_TTL_SECONDS });
 }
 
+export async function getAudioObject(key: string, range?: string) {
+  return getClient().send(new GetObjectCommand({
+    Bucket: env.R2_BUCKET,
+    Key: key,
+    Range: range,
+  }));
+}
+
 export async function deleteAudioObject(key: string) {
   await getClient().send(new DeleteObjectCommand({ Bucket: env.R2_BUCKET, Key: key }));
 }
@@ -43,4 +51,3 @@ export async function checkR2() {
   }
   return true;
 }
-
