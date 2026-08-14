@@ -30,7 +30,7 @@ MiMo Audio Studio 是一个面向 [MiMo 音频 API](https://mimo.mi.com/docs/en-
 - **用户密钥库**：每位用户独立保存 MiMo API Key 与 Base URL；浏览器不会读回明文。
 - **多 API 通道**：内置 Commercial API 与 Token Plan CN，管理员可维护 HTTPS 端点白名单。
 - **管理控制台**：用户角色、API 通道、系统健康、任务与音频统计。
-- **私有媒体存储**：音频存入 Cloudflare R2 私有 Bucket，客户端只获得短期签名 URL。
+- **私有媒体存储**：音频存入 Cloudflare R2 私有 Bucket，经同源认证 API 流式读取，并支持 Range / HTTP 206。
 - **实体化界面**：React Three Fiber / Three.js 组件、机械按键音效、响应式桌面与移动布局。
 
 ## 架构

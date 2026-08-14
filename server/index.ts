@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isIP } from "node:net";
+import { Readable } from "node:stream";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -12,7 +13,7 @@ import { decryptCredential, encryptCredential } from "./crypto.js";
 import { checkDatabase, pool } from "./db.js";
 import { env } from "./env.js";
 import { generateSpeech, generateSpeechStream, generateTimedSpeech, transcribeAudio, transcribeAudioStream, validateMimoKey } from "./mimo.js";
-import { checkR2, deleteAudioObject, putAudioObject, signedAudioUrl } from "./r2.js";
+import { checkR2, deleteAudioObject, getAudioObject, putAudioObject } from "./r2.js";
 
 type Session = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 type Variables = { session: Session };
@@ -229,10 +230,32 @@ app.get("/api/audio", async (c) => {
 app.get("/api/audio/:id/url", async (c) => {
   const row = await ownedAudio(c.get("session").user.id, c.req.param("id"));
   if (!row) return c.json({ error: "Audio not found" }, 404);
-  const download = c.req.query("download") === "1";
+  const suffix = c.req.query("download") === "1" ? "?download=1" : "";
+  return c.json({ url: `${env.appBasePath}/api/audio/${encodeURIComponent(row.id)}/content${suffix}`, expiresIn: null });
+});
+
+app.get("/api/audio/:id/content", async (c) => {
+  const row = await ownedAudio(c.get("session").user.id, c.req.param("id"));
+  if (!row) return c.json({ error: "Audio not found" }, 404);
+  const requestedRange = c.req.header("Range");
+  if (requestedRange && !/^bytes=\d*-\d*$/.test(requestedRange)) return c.json({ error: "Invalid byte range" }, 416);
+  const object = await getAudioObject(row.object_key, requestedRange);
+  if (!object.Body) return c.json({ error: "Audio object is unavailable" }, 502);
   const filename = `${safeFilename(row.title)}.${row.file_format}`;
-  const url = await signedAudioUrl(row.object_key, download ? "attachment" : "inline", filename);
-  return c.json({ url, expiresIn: env.R2_SIGNED_URL_TTL_SECONDS });
+  const disposition = c.req.query("download") === "1" ? "attachment" : "inline";
+  const headers = new Headers({
+    "Accept-Ranges": "bytes",
+    "Cache-Control": "private, no-store",
+    "Content-Type": object.ContentType || row.mime_type || "application/octet-stream",
+    "Content-Disposition": `${disposition}; filename*=UTF-8''${encodeURIComponent(filename)}`,
+  });
+  if (object.ContentLength != null) headers.set("Content-Length", String(object.ContentLength));
+  if (object.ContentRange) headers.set("Content-Range", object.ContentRange);
+  if (object.ETag) headers.set("ETag", object.ETag);
+  const body = object.Body.transformToWebStream
+    ? object.Body.transformToWebStream()
+    : Readable.toWeb(object.Body as NodeJS.ReadableStream) as ReadableStream;
+  return new Response(body as BodyInit, { status: object.ContentRange ? 206 : 200, headers });
 });
 
 const transcriptSchema = z.object({ transcript: z.string().max(200_000) });
