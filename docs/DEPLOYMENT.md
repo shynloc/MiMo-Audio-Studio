@@ -22,7 +22,9 @@ The supported path is:
 ```bash
 APP_ROOT=/opt/mimo-studio \
 AUDIOPLAYER_RELEASE=$(git rev-parse --short=12 HEAD) \
-PUBLIC_URL=https://voice.example.com/audioplayer/ \
+VITE_APP_BASE_PATH=/ \
+HEALTH_URL=http://127.0.0.1:8787/api/health \
+PUBLIC_URL=https://voice.example.com/ \
 ./scripts/deploy-production.sh
 ```
 
@@ -41,10 +43,11 @@ select count(*) from audio_assets where deleted_at is null;
 
 Also verify:
 
-- `/audioplayer/api/health` reports the database and object storage as ready;
+- `/api/health` (or `<APP_BASE_PATH>/api/health`) reports the database and object storage as ready;
 - an existing account can sign in;
 - its credential metadata still reports configured;
-- one stored audio item receives a valid signed playback URL;
+- one stored audio item receives a same-origin authenticated content URL;
+- a valid `Range` request to that URL returns `206 Partial Content` with the correct media type;
 - password reset revokes old sessions but retains credentials and audio history.
 
 ## Backup schedule
